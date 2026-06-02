@@ -4,7 +4,7 @@ description: Read and modify Twenty CRM data — people, companies, opportunitie
 license: MIT
 compatibility: macOS or Linux. Requires restish (https://rest.sh), jq, and curl. Optional macOS Keychain for token storage. Bash 3.2+.
 metadata:
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # Twenty CRM
@@ -127,13 +127,21 @@ restish twenty-<instance>-core create-one-task-target '{"taskId":"'$TASK_ID'","c
 ```
 
 **Metadata (introspect schema, including custom objects):**
-```bash
-restish twenty-<instance>-meta find-many-objects \
-  -f 'body.data.objects[].{name: nameSingular, custom: isCustom, fields: (fields | length)}'
 
-restish twenty-<instance>-meta find-many-fields \
-  --filter 'object.nameSingular[eq]:"company"' \
-  -f 'body.data.fields[].{name, type, label}'
+The metadata API differs from core: commands are named `get-rest-metadata-<resource>` (no `find-many-*` aliases — confirm with `restish twenty-<instance>-meta --help`), the endpoints take **no query params** (`--limit` / `--filter` are rejected), and responses carry `body.data.{objects,fields}` + `body.pageInfo` but **no** `body.totalCount`. Fetch the full set and slice client-side. Each object embeds its own `fields[]`.
+
+```bash
+# List objects (flat projection works with restish -f)
+restish twenty-<instance>-meta get-rest-metadata-objects \
+  -f 'body.data.objects[].{name: nameSingular, custom: isCustom}'
+
+# Anything computed or filtered (field counts, a single object's fields):
+# restish -f is not jq — pipe to jq, starting at .data (the raw body).
+restish twenty-<instance>-meta get-rest-metadata-objects \
+  | jq '.data.objects[] | {name: .nameSingular, fields: (.fields | length)}'
+
+restish twenty-<instance>-meta get-rest-metadata-objects \
+  | jq -r '.data.objects[] | select(.nameSingular=="company") | .fields[] | {name, type, label}'
 ```
 
 ### Always link back to the UI
