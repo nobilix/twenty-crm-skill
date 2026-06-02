@@ -1,0 +1,41 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Validate SKILL.md frontmatter
+        run: python3 .github/scripts/validate_skill.py skills/twenty-crm
+
+      - name: Shellcheck scripts
+        # Run from the scripts dir so the `source=lib.sh` directives resolve.
+        run: |
+          cd skills/twenty-crm/scripts
+          shellcheck -x *.sh
+
+      - name: Verify executable bits on scripts
+        run: |
+          missing=0
+          for f in skills/twenty-crm/scripts/*.sh; do
+            if [ ! -x "$f" ]; then
+              echo "::error file=$f::script is not executable (chmod +x)"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Verify marketplace.json is valid JSON
+        run: python3 -m json.tool .claude-plugin/marketplace.json > /dev/null

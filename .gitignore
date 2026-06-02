@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+._*
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*~
+
+# Anything that smells like a secret — none should ever land here, but defensive.
+.env
+.env.*
+*.token
+secrets/
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Local scratch
+*.log
+*.tmp
+tmp/
+
+# Per-user runtime state (lives in ~/.config/twenty-cli/, never in the repo)
+.twenty-cli/
+
+# Local-only working docs (not for publication)
+.local-docs/
