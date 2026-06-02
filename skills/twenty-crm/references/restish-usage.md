@@ -10,7 +10,7 @@ restish twenty-myco-core <operation-id> [<positional args>] [--flag value] [body
         registered API   from spec        path params       options    request body
 ```
 
-`operation-id` is the camelCase OpenAPI `operationId` rendered as kebab-case (e.g. `findManyPeople` → `find-many-people`).
+`operation-id` is the camelCase OpenAPI `operationId` rendered as kebab-case (e.g. `findManyPeople` → `find-many-people`). The metadata API (`twenty-<instance>-meta`) has no `operationId`s, so its commands are named from the HTTP path instead — `get-rest-metadata-objects`, `get-rest-metadata-fields` — and they take no query params (`--limit`/`--filter` are rejected). Always confirm with `--help`.
 
 ## Listing
 
@@ -127,6 +127,11 @@ restish twenty-staging-core find-many-companies
 ```
 
 There's no global "switch instance" — you select by API name. The `default` field in `instances.json` matters only for `scripts/refresh-schema.sh` when no name is passed.
+
+## Access and secrets
+
+- **Sandboxed / restricted agents** (e.g. Codex with a managed permission profile): restish must be able to read the token from your token store (Keychain / env / file) **and** write its parsed-spec cache (`~/Library/Caches/restish` on macOS, `~/.cache/restish` on Linux). A sandbox that blocks either typically surfaces as a bare `exit 1` or a `FORBIDDEN` error rather than a clear message. Grant access to those paths, or run the CRM calls outside the sandbox. An `env` or `file` token source also avoids a Keychain access prompt.
+- **The bearer token is emitted by `auth-helper.sh` (and by `restish -v`)** — by design, since restish reads the header from the helper's stdout. Don't run `auth-helper.sh <instance>` by hand or use `-v` in a logged/shared session: the token lands in the transcript. To sanity-check token resolution, compare its length, not its value. If a token ever leaks into a transcript, rotate the API key in Twenty.
 
 ## Troubleshooting
 

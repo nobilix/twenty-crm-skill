@@ -4,7 +4,7 @@ description: Read and modify Twenty CRM data — people, companies, opportunitie
 license: MIT
 compatibility: macOS or Linux. Requires restish (https://rest.sh), jq, and curl. Optional macOS Keychain for token storage. Bash 3.2+.
 metadata:
-  version: "0.2.2"
+  version: "0.2.3"
 ---
 
 # Twenty CRM

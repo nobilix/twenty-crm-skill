@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] — 2026-06-02
+
+### Security
+
+- `auth-helper.sh` now carries a header warning that it prints the bearer token to stdout (by design, for restish); `references/restish-usage.md` documents not running it by hand — or `restish -v` — in a logged/shared session, and to rotate the key if a token leaks.
+
+### Added
+
+- `references/restish-usage.md` "Access and secrets" note for sandboxed/restricted agents (e.g. Codex): restish needs token-store read and cache-dir write access; symptoms and workarounds documented.
+
 ## [0.2.2] — 2026-06-02
 
 ### Fixed
@@ -46,7 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `refresh-schema.sh` that respects each instance's persisted slim configuration.
 - References: `filter-dsl.md`, `api-shape.md`, `restish-usage.md`, `architecture.md`.
 
-[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.3
 [0.2.2]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.2
 [0.2.1]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.1
 [0.2.0]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.0
