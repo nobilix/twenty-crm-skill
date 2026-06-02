@@ -74,7 +74,7 @@ ask_secret() {
 if [ "$INTERACTIVE" -eq 1 ]; then
   echo "── Twenty CRM skill setup ──"
   [ -z "$name" ]  && ask name  "Instance name (short, lowercase, no spaces)" "myco"
-  [ -z "$url" ]   && ask url   "Twenty server URL (cloud: https://api.twenty.com — self-hosted: https://crm.your-company.com)"
+  [ -z "$url" ]   && ask url   "Twenty URL — the address you open Twenty at (self-hosted: https://crm.your-company.com — cloud: https://your-workspace.twenty.com)"
   [ -z "$token" ] && ask_secret token "API key (Settings → APIs & Webhooks → + Create key)"
   if [ -z "$token_from" ]; then
     echo "Token storage:"
@@ -203,6 +203,10 @@ tw_jq_inplace "$TW_RESTISH_APIS" \
   --arg cn "twenty-$name-core" --arg mn "twenty-$name-meta" \
   '.[$cn] = $core | .[$mn] = $meta'
 echo "✓ restish APIs registered: twenty-$name-core, twenty-$name-meta"
+
+# Drop any stale parsed-spec cache so a changed URL or re-downloaded spec takes
+# effect immediately (Restish otherwise serves the previous registration).
+rm -f "$TW_RESTISH_CACHE/twenty-$name-core.cbor" "$TW_RESTISH_CACHE/twenty-$name-meta.cbor"
 
 cat <<EOF
 

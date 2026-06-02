@@ -37,8 +37,9 @@ guide="$(cd "$SCRIPT_DIR/.." && pwd)/references/setup-guide.md"
 
 This skill is not yet configured. You need three things:
 
-  1. Base URL — the address you open Twenty at. Self-hosted: https://crm.your-company.com.
-     Twenty Cloud: https://api.twenty.com. (setup appends /rest automatically)
+  1. URL — the address you open Twenty at in the browser. Self-hosted:
+     https://crm.your-company.com. Cloud: https://your-workspace.twenty.com
+     (your workspace subdomain, NOT api.twenty.com; setup appends /rest).
   2. API key — in Twenty: Settings → APIs & Webhooks → Create API Key →
      name it → Save → Copy (shown only once).
   3. Token storage — keychain (macOS) | file (Linux/WSL) | env (CI).

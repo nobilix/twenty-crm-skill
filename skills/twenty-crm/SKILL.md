@@ -4,7 +4,7 @@ description: Read and modify Twenty CRM data — people, companies, opportunitie
 license: MIT
 compatibility: macOS or Linux. Requires restish (https://rest.sh), jq, and curl. Optional macOS Keychain for token storage. Bash 3.2+.
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # Twenty CRM
@@ -26,7 +26,7 @@ bash scripts/preflight.sh
 
 Idempotent — re-running updates an existing instance. New here? `references/setup-guide.md` has the full step-by-step (where the URL comes from, how to create the API key, token-storage trade-offs).
 
-To configure, you need: instance name (lowercase, e.g. `myco`), server URL (e.g. `https://api.twenty.com`), an API key from **Settings → APIs & Webhooks → + Create key**, and one of three token storage modes — `keychain` (macOS, default account `twenty-<name>` / service `api`), `env` (var `TWENTY_<NAME>_KEY`), or `file` (`~/.config/twenty-cli/tokens/<name>`, mode 600). At runtime, `$TWENTY_API_KEY` overrides everything.
+To configure, you need: instance name (lowercase, e.g. `myco`), the URL you open Twenty at — self-hosted `https://crm.your-company.com` or cloud `https://your-workspace.twenty.com` (the workspace subdomain, **not** `api.twenty.com` — that host has no UI, so record links break); setup appends `/rest`. Plus an API key from **Settings → APIs & Webhooks → + Create key**, and one of three token storage modes — `keychain` (macOS, default account `twenty-<name>` / service `api`), `env` (var `TWENTY_<NAME>_KEY`), or `file` (`~/.config/twenty-cli/tokens/<name>`, mode 600). At runtime, `$TWENTY_API_KEY` overrides everything.
 
 ### Path A — user-driven (preferred when an API key is involved)
 

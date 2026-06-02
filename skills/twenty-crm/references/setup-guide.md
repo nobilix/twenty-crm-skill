@@ -20,14 +20,16 @@ curl --version
 
 If `restish` is missing: `bash scripts/install-restish.sh` (uses Homebrew, else `go install`, else prints the binary download URL).
 
-## 2. Base URL
+## 2. URL
 
-The base URL is **the same origin you use to reach Twenty in the browser** — `setup.sh` appends `/rest` automatically.
+Always use **the address you open Twenty at in the browser** — `setup.sh` appends `/rest` automatically. That single origin serves both the REST API and the clickable record links the agent shows you.
 
-| Deployment | Base URL |
+| Deployment | URL |
 | --- | --- |
-| Self-hosted | The address of your Twenty app, e.g. `https://crm.your-company.com` |
-| Twenty Cloud | `https://api.twenty.com` |
+| Self-hosted | Your Twenty app address, e.g. `https://crm.your-company.com` |
+| Twenty Cloud | Your workspace subdomain, e.g. `https://your-workspace.twenty.com` |
+
+> **Cloud: use your workspace subdomain, not `https://api.twenty.com`.** The shared `api.twenty.com` host answers REST calls, but it has no UI — so record links like `https://api.twenty.com/objects/companies` won't open. Your workspace URL (the one you log in at) serves the API *and* produces working links.
 
 No trailing slash needed — setup strips it. If you get the URL wrong, setup fails fast: it validates by fetching `<url>/rest/open-api/core` before saving anything.
 

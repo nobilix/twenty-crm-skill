@@ -2,7 +2,7 @@
   "name": "twenty-crm-skill",
   "metadata": {
     "description": "Agent Skill for reading and modifying Twenty CRM data on any self-hosted or cloud deployment.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "homepage": "https://github.com/nobilix/twenty-crm-skill"
   },
   "plugins": [

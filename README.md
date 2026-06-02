@@ -1,6 +1,6 @@
 # twenty-crm — an Agent Skill for Twenty CRM
 
-An [Agent Skill](https://agentskills.io) that lets AI coding agents read and modify data in [Twenty CRM](https://twenty.com) — people, companies, opportunities, tasks, notes, and custom objects — on **any** Twenty deployment (self-hosted or `api.twenty.com`).
+An [Agent Skill](https://agentskills.io) that lets AI coding agents read and modify data in [Twenty CRM](https://twenty.com) — people, companies, opportunities, tasks, notes, and custom objects — on **any** Twenty deployment (self-hosted or Twenty Cloud).
 
 [![skills.sh](https://skills.sh/b/nobilix/twenty-crm-skill)](https://skills.sh/nobilix/twenty-crm-skill)
 
