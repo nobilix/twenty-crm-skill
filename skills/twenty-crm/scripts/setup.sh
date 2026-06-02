@@ -78,17 +78,33 @@ if [ "$INTERACTIVE" -eq 1 ]; then
   [ -z "$token" ] && ask_secret token "API key (Settings → APIs & Webhooks → + Create key)"
   if [ -z "$token_from" ]; then
     echo "Token storage:"
-    echo "  1) keychain  — macOS Keychain (recommended on Mac)"
-    echo "  2) file      — \$TW_CONFIG_DIR/tokens/<name> with chmod 600"
-    echo "  3) env       — read from environment variable"
-    choice=""
-    ask choice "Pick 1/2/3" "1"
-    case "$choice" in
-      1) token_from="keychain" ;;
-      2) token_from="file" ;;
-      3) token_from="env" ;;
-      *) tw_die "invalid choice: $choice" ;;
-    esac
+    if [ "$(uname -s)" = "Darwin" ]; then
+      # macOS: Keychain is the secure zero-setup default.
+      echo "  1) keychain  — macOS Keychain (recommended)"
+      echo "  2) file      — \$TW_CONFIG_DIR/tokens/<name> with chmod 600"
+      echo "  3) env       — read from environment variable"
+      choice=""
+      ask choice "Pick 1/2/3" "1"
+      case "$choice" in
+        1) token_from="keychain" ;;
+        2) token_from="file" ;;
+        3) token_from="env" ;;
+        *) tw_die "invalid choice: $choice" ;;
+      esac
+    else
+      # Linux/WSL: no system keyring by default, so chmod-600 file is the
+      # secure zero-dependency default; keychain isn't available here.
+      echo "  1) file      — \$TW_CONFIG_DIR/tokens/<name> with chmod 600 (recommended)"
+      echo "  2) env       — read from environment variable"
+      echo "  (keychain is macOS-only)"
+      choice=""
+      ask choice "Pick 1/2" "1"
+      case "$choice" in
+        1) token_from="file" ;;
+        2) token_from="env" ;;
+        *) tw_die "invalid choice: $choice" ;;
+      esac
+    fi
   fi
 fi
 

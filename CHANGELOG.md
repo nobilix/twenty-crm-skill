@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] — 2026-06-02
+
+### Changed
+
+- Interactive `setup.sh` now picks the token-storage default by OS: macOS keeps Keychain as the recommended default; Linux/WSL defaults to the `chmod 600` file and no longer offers Keychain (it's macOS-only). Previously the default was always Keychain, so on Linux/WSL pressing Enter led straight to a "keychain only on macOS" dead end.
+
 ## [0.2.3] — 2026-06-02
 
 ### Security
@@ -56,7 +62,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `refresh-schema.sh` that respects each instance's persisted slim configuration.
 - References: `filter-dsl.md`, `api-shape.md`, `restish-usage.md`, `architecture.md`.
 
-[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.4
 [0.2.3]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.3
 [0.2.2]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.2
 [0.2.1]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.1
