@@ -14,22 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install shellcheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
-
       - name: Validate SKILL.md frontmatter
         run: python3 .github/scripts/validate_skill.py skills/twenty-crm
 
-      - name: Shellcheck scripts
-        # Run from the scripts dir so the `source=lib.sh` directives resolve.
-        run: |
-          cd skills/twenty-crm/scripts
-          shellcheck -x *.sh
+      - name: Syntax-check scripts
+        run: node --check skills/twenty-crm/scripts/twenty.mjs
 
       - name: Verify executable bits on scripts
         run: |
           missing=0
-          for f in skills/twenty-crm/scripts/*.sh; do
+          for f in skills/twenty-crm/scripts/*.mjs; do
             if [ ! -x "$f" ]; then
               echo "::error file=$f::script is not executable (chmod +x)"
               missing=1

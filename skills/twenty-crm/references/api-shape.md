@@ -7,11 +7,11 @@
 | Core     | `<profile>` (`twenty`)   | `<url>/rest/`          | CRUD on records: People, Companies, Opportunities, Tasks, Notes, custom objects   |
 | Metadata | `<profile>-meta` (opt-in) | `<url>/rest/metadata/` | Workspace schema: create/modify/delete objects, fields, views, webhooks, API keys |
 
-Use Core for anything the user calls "data". The metadata profile is created only with `setup.sh --with-metadata`; most schema lookups don't need it because custom objects/fields already appear in the core spec.
+Use Core for anything the user calls "data". The metadata profile is created only with `setup --with-metadata`; most schema lookups don't need it because custom objects/fields already appear in the core spec.
 
 ## Per-tenant schemas
 
-The OpenAPI spec is **generated per workspace** — custom objects and fields appear automatically (a custom `pet` object becomes the `pets_*` commands). After adding a custom object/field, run `bash scripts/refresh-schema.sh` to re-pull and re-cache.
+The OpenAPI spec is **generated per workspace** — custom objects and fields appear automatically (a custom `pet` object becomes the `pets_*` commands). After adding a custom object/field, run `node scripts/twenty.mjs refresh` to re-pull and re-cache.
 
 ## Operation naming
 
@@ -95,7 +95,7 @@ Composite fields are objects — pass them as a **JSON string** flag, which ocli
 
 Twenty stores every datetime in **UTC** (ISO-8601, e.g. `2026-06-04T06:00:00.000Z`) and the web UI renders it in the **workspace member's timezone**. So a value written as `…T10:00:00Z` displays shifted by the member's offset — a frequent "why is the time wrong?" bug.
 
-**`preflight.sh` reports the user's `TZ` and `NOW`** (local zone + current local time) — resolve dates from there, on the fly. Nothing is persisted, so it never goes stale (travel, DST, a changed setting). `node` (required by ocli) does the conversion using the machine's zone:
+**`preflight` reports the user's `TZ` and `NOW`** (local zone + current local time) — resolve dates from there, on the fly. Nothing is persisted, so it never goes stale (travel, DST, a changed setting). `node` (required by ocli) does the conversion using the machine's zone:
 
 ```bash
 # SET: user's local wall-clock → UTC for dueAt etc.  (handles DST + relative math)

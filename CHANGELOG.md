@@ -14,7 +14,8 @@ Breaking: the runtime changed from Restish to [`ocli`](https://github.com/EvilFr
 ### Changed
 
 - **Runtime swap.** The skill now generates its CLI from the full per-tenant OpenAPI spec via `ocli` (`openapi-to-cli`), pinned to `0.1.15`. ocli resolves Twenty's circular `$ref`s natively (eager resolution + cycle guard), so the mandatory spec-slimming/stubbing is gone. New dependency: Node.js ≥18 (`npm i -g openapi-to-cli@0.1.15`); Restish is no longer used.
-- **Simpler setup.** `setup.sh --non-interactive --url <url> --token <key>` — dropped `--name`, the token-storage mode, and the slim flags. A single ocli profile (`twenty`) by default; `--with-metadata` adds the schema-admin profile.
+- **Single Node CLI.** The shell scripts are replaced by one `scripts/twenty.mjs` with `setup` / `preflight` / `refresh` subcommands, using Node's native `fetch` + JSON — so `curl` is no longer a dependency. Runtime deps: Node.js ≥18, ocli, jq.
+- **Simpler setup.** `node twenty.mjs setup --non-interactive --url <url> --token <key>` — dropped `--name`, the token-storage mode, and the slim flags. A single ocli profile (`twenty`) by default; `--with-metadata` adds the schema-admin profile.
 - **Command surface** is ocli's `<path>_<method>` naming (`people_get`, `companies_post`, `opportunities_id_patch`, …); responses are raw JSON piped to `jq` instead of Restish `-f` projections. Create/update take per-field flags (composite fields as JSON).
 - **Credentials** are stored in ocli's `~/.ocli/profiles.ini` in plaintext, hardened to mode `600` (`umask 077`). The keychain/env/file model and the `$TWENTY_API_KEY` override are gone — re-run setup to rotate.
 - **preflight** now emits `PROFILE` / `URL` / `METADATA` / `TZ` / `NOW` (was `DEFAULT` / `INSTANCES` / `URL_<name>`) and warns when a `$PWD/.ocli` directory shadows `~/.ocli`.
@@ -23,7 +24,7 @@ Breaking: the runtime changed from Restish to [`ocli`](https://github.com/EvilFr
 
 ### Removed
 
-- `scripts/slim-spec.sh`, `scripts/auth-helper.sh`, `scripts/install-restish.sh`, the multi-instance registry, and `references/restish-usage.md` (replaced by `references/ocli-usage.md`). Seven scripts down to three.
+- `scripts/slim-spec.sh`, `scripts/auth-helper.sh`, `scripts/install-restish.sh`, the multi-instance registry, and `references/restish-usage.md` (replaced by `references/ocli-usage.md`). All shell scripts are replaced by the single Node CLI `scripts/twenty.mjs`.
 
 ### Known limitations
 

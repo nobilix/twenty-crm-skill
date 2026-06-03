@@ -2,7 +2,7 @@
 name: twenty-crm
 description: Read and modify Twenty CRM data — people, companies, opportunities, tasks, notes, custom objects — on any Twenty deployment (self-hosted or cloud). Includes a one-time setup that connects the instance and stores the API token. Use when the user wants to look up, search, filter, count, create, update, or delete CRM records; review their pipeline or contacts; bulk-edit via filter; introspect or change the workspace schema (objects, fields, webhooks); or set up CLI access to a Twenty instance. Triggers on "twenty", "the CRM", a `crm.*` URL, or mentions of people/companies/opportunities/deals/leads/pipeline in a CRM context.
 license: MIT
-compatibility: macOS or Linux. Requires Node.js ≥18, ocli (openapi-to-cli), jq, and curl. Bash 3.2+.
+compatibility: macOS or Linux. Requires Node.js ≥18, ocli (openapi-to-cli), and jq.
 metadata:
   version: "0.3.0"
 ---
@@ -14,7 +14,7 @@ Reusable across any Twenty deployment. The skill drives [`ocli`](https://github.
 ## Step 0: preflight (always)
 
 ```bash
-bash scripts/preflight.sh
+node scripts/twenty.mjs preflight
 ```
 
 - `STATUS=ready` → proceed. Output also gives `PROFILE=<name>` (the ocli profile, usually `twenty`), `URL=<base-url>` (use it to build UI links), and `METADATA=<name>` if the metadata profile was set up.
@@ -31,13 +31,13 @@ You need: the URL you open Twenty at — self-hosted `https://crm.your-company.c
 **Recommend the user run setup in their own terminal** — the API key is typed as hidden input, so it never lands in the chat transcript. Tell them why, and give them:
 
 ```
-bash <skill-path>/scripts/setup.sh
+node <skill-path>/scripts/twenty.mjs setup
 ```
 
 That's the safe default. Only if the user *themselves* puts the URL + key in chat (or explicitly asks you to run it) use the non-interactive form:
 
 ```
-bash <skill-path>/scripts/setup.sh --non-interactive --url <url> --token <key>
+node <skill-path>/scripts/twenty.mjs setup --non-interactive --url <url> --token <key>
 ```
 
 Add `--with-metadata` to also create the schema-admin profile (rarely needed; see Metadata below). After setup, run preflight to confirm `STATUS=ready`.
@@ -172,7 +172,7 @@ Use the `URL=` line from preflight as the base — never reconstruct it. Built-i
 ## After a Twenty upgrade or schema change
 
 ```bash
-bash scripts/refresh-schema.sh
+node scripts/twenty.mjs refresh
 ```
 
 Re-downloads the spec and refreshes ocli's resolved-spec cache. Run after Twenty version bumps or when the user adds/changes a custom object or field.

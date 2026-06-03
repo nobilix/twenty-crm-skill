@@ -43,7 +43,7 @@ Copy `skills/twenty-crm/` into one of your client's skill directories:
 
 ## Quick start
 
-1. Install prerequisites (one-time): Node.js ≥18, `ocli`, `jq`, `curl`.
+1. Install prerequisites (one-time): Node.js ≥18, `ocli`, `jq`.
 
    ```bash
    npm i -g openapi-to-cli@0.1.15     # the CLI generator (pinned)
@@ -54,15 +54,15 @@ Copy `skills/twenty-crm/` into one of your client's skill directories:
 3. Configure your instance (interactive):
 
    ```bash
-   bash skills/twenty-crm/scripts/setup.sh
+   node skills/twenty-crm/scripts/twenty.mjs setup
    ```
 
-   The script asks for the server URL and the API key. It validates the key, downloads the OpenAPI spec, and creates an ocli profile (default name `twenty`).
+   It asks for the server URL and the API key, validates the key, downloads the OpenAPI spec, and creates an ocli profile (default name `twenty`).
 
 4. Confirm:
 
    ```bash
-   bash skills/twenty-crm/scripts/preflight.sh
+   node skills/twenty-crm/scripts/twenty.mjs preflight
    # STATUS=ready
    # PROFILE=twenty
    # URL=<base-url>
@@ -84,7 +84,7 @@ The full operating reference lives in [`skills/twenty-crm/SKILL.md`](skills/twen
 - [`references/filter-dsl.md`](skills/twenty-crm/references/filter-dsl.md) — filter, order-by, pagination DSL
 - [`references/api-shape.md`](skills/twenty-crm/references/api-shape.md) — built-in objects, key fields, conventions (money in micros, soft delete, polymorphic targets)
 - [`references/ocli-usage.md`](skills/twenty-crm/references/ocli-usage.md) — ocli call patterns, command naming, output→jq, troubleshooting
-- [`references/architecture.md`](skills/twenty-crm/references/architecture.md) — why setup is wired the way it is (ocli profiles, the `~/.ocli` vs `config.json` split, the `cd $HOME` rule)
+- [`references/architecture.md`](skills/twenty-crm/references/architecture.md) — why setup is wired the way it is (the `twenty.mjs` CLI, ocli profiles, the `~/.ocli` vs `config.json` split, the run-from-`$HOME` rule)
 
 ## State and locations
 

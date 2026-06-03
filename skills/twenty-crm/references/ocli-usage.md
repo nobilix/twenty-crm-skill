@@ -90,13 +90,13 @@ There is **no per-call `--profile` flag** — selection is the global `~/.ocli/c
 
 - **Plaintext token.** The bearer token is stored in `~/.ocli/profiles.ini`, hardened to mode `600` (setup runs under `umask 077`). It is not printed by normal commands; `ocli profiles show` masks it. Treat `profiles.ini` like a password file. If it ever leaks, rotate the API key in Twenty and re-run setup.
 - **Sandboxed / restricted agents** (e.g. Codex with a managed profile): ocli must be able to **read and write `~/.ocli/`** (profiles + the spec cache) and reach the network. node must be on `PATH`. A sandbox that blocks the home dir or network typically surfaces as a bare error; grant access to `~/.ocli` or run the CRM calls outside the sandbox.
-- **cwd shadow.** ocli resolves config from `$PWD/.ocli` first, then `~/.ocli`. A stray `.ocli` directory in the working directory will hide the global profile. `preflight.sh` warns when `$PWD/.ocli` exists; remove it or run from another directory.
+- **cwd shadow.** ocli resolves config from `$PWD/.ocli` first, then `~/.ocli`. A stray `.ocli` directory in the working directory will hide the global profile. `preflight` warns when `$PWD/.ocli` exists; remove it or run from another directory.
 
 ## Troubleshooting
 
 - **`Invalid number value '…'`** — a numeric field was sent as a string (see Value rules). Nest it in a JSON object flag, or omit it.
-- **HTTP 401 / 403** — token expired or revoked. Recreate the API key in Twenty, then re-run `setup.sh` (it rewrites the token).
+- **HTTP 401 / 403** — token expired or revoked. Recreate the API key in Twenty, then re-run setup (it rewrites the token).
 - **`No current profile configured` / command not available** — the active profile isn't ours. `ocli use <PROFILE>` and retry.
 - **`Missing required options: --id`** — that command needs a path param; check `--help`.
-- **Custom field / object missing from `--help`** — the cached spec is stale. `bash scripts/refresh-schema.sh`.
+- **Custom field / object missing from `--help`** — the cached spec is stale. `node scripts/twenty.mjs refresh`.
 - **Rate-limited (429)** — ~100 req/min per token. Slow down; prefer `--depth 0` and projections to keep payloads small.
