@@ -1,6 +1,6 @@
 # Twenty REST filter, ordering, and pagination DSL
 
-This is the query DSL used in `filter`, `order_by`, `limit`, `starting_after`, `ending_before`, and `depth` query parameters on every `find-many-*` operation. The syntax is identical for all objects; what changes is the field names available on each object (look those up in the OpenAPI spec → `core.full.json` → `paths` → `<resource>` → response schema, or use the metadata API to enumerate fields).
+This is the query DSL used in the `--filter`, `--order_by`, `--limit`, `--starting_after`, `--ending_before`, and `--depth` flags on every list (`<resource>_get`) command. The syntax is identical for all objects; what changes is the field names available on each object (look those up in the resolved spec at `~/.ocli/specs/<profile>.json`, via `ocli <resource>_get --help`, or the metadata profile).
 
 ## Filtering
 
@@ -53,6 +53,7 @@ filter=not(status[eq]:"archived")            # not wraps exactly one condition
 - Booleans: **unquoted** — `true`, `false`
 - NULL/NOT_NULL with `is`: **unquoted** — `NULL`, `NOT_NULL`
 - Lists for `in`/`containsAny`: `["a","b","c"]`
+- **Dates/times are UTC.** Twenty stores and filters in UTC; convert the user's local time first (`preflight` reports their `TZ` / `NOW`). For ranges, compute UTC bounds with `node` — see `api-shape.md` → "Dates and times".
 
 ## Ordering
 
@@ -81,7 +82,7 @@ GET /people?limit=60&starting_after=<endCursorFromPreviousPage>
 GET /people?limit=60&ending_before=<startCursorFromCurrentPage>
 ```
 
-Response includes `pageInfo: { hasNextPage, startCursor, endCursor }`. Restish auto-paginates via `Link` headers, but Twenty returns cursor in body — agent loops manually if `hasNextPage` is true.
+Response includes `pageInfo: { hasNextPage, hasPreviousPage, startCursor, endCursor }` plus top-level `totalCount`. Loop manually: while `hasNextPage` is true, pass the previous page's `endCursor` as `--starting_after`.
 
 ## Depth (relation expansion)
 
@@ -94,17 +95,20 @@ Use `depth=0` when listing many records to keep payloads small and stay under ra
 
 ## Rate limits and batching
 
-- 100 requests per minute per token
-- Batch endpoints (`POST /batch/<resource>`) accept up to 60 records per call. They are dropped from the slim spec by default — re-run setup with `--keep-batch` to access them.
+- ~100 requests per minute per token
+- Batch create up to 60 records per call via the `batch_<plural>` command.
 
-## Restish flag mapping
+## ocli flag mapping
 
-| HTTP query param | Restish flag                       |
-| ---------------- | ---------------------------------- |
-| `?limit=60`      | `--limit 60`                       |
-| `?filter=...`    | `--filter '...'`                   |
-| `?order_by=...`  | `--order-by '...'`                 |
-| `?depth=0`       | `--depth 0`                        |
-| `?starting_after=...` | `--starting-after '...'`      |
+The flag name is the query parameter's spec name (snake_case), passed verbatim:
 
-Use `restish twenty-<instance>-core <op> --help` to see exactly which flags an operation exposes.
+| HTTP query param      | ocli flag                  |
+| --------------------- | -------------------------- |
+| `?limit=60`           | `--limit 60`               |
+| `?filter=...`         | `--filter '...'`           |
+| `?order_by=...`       | `--order_by '...'`         |
+| `?depth=0`            | `--depth 0`                |
+| `?starting_after=...` | `--starting_after '...'`   |
+| `?ending_before=...`  | `--ending_before '...'`    |
+
+A plain-string `--filter 'stage[eq]:"X"'` is URL-encoded into the query verbatim. Use `ocli <resource>_get --help` to see exactly which flags a command exposes.

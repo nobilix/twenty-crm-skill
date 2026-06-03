@@ -5,15 +5,14 @@ An [Agent Skill](https://agentskills.io) that lets AI coding agents read and mod
 [![skills.sh](https://skills.sh/b/nobilix/twenty-crm-skill)](https://skills.sh/nobilix/twenty-crm-skill)
 
 > [!NOTE]
-> Built and tested against Twenty v1.15. The skill auto-downloads your workspace's OpenAPI spec at setup time, so custom objects, custom fields, and customized enums are picked up automatically.
+> The skill auto-downloads your workspace's OpenAPI spec at setup time, so custom objects, custom fields, and customized enums are picked up automatically. Verified end-to-end against a live Twenty Cloud workspace.
 
 ## What this gives your agent
 
-- **List, search, filter, create, update, delete** records via a generated CLI (built on [Restish](https://rest.sh) over Twenty's per-tenant REST API).
-- **Multi-instance** — register `prod`, `staging`, a Cloud workspace, and a self-hosted one side by side; pick per command.
-- **Secure credentials** — token stored in macOS Keychain, environment variable, or a `chmod 600` file; runtime `$TWENTY_API_KEY` always overrides.
-- **Schema-aware** — operates on whatever your workspace looks like, including custom objects and renamed pipeline stages. The full unmodified OpenAPI spec is kept locally for the agent to consult.
-- **Quiet setup contract** — preflight prints a structured `KEY=VALUE` report so the agent can either pick up an existing config or guide the user (or itself) through `--non-interactive` setup.
+- **List, search, filter, create, update, delete** records via a CLI generated from your workspace's per-tenant REST API by [`ocli`](https://github.com/EvilFreelancer/openapi-to-cli).
+- **Schema-aware** — operates on whatever your workspace looks like, including custom objects and renamed pipeline stages. The full resolved OpenAPI spec is cached locally for the agent to consult.
+- **One CRM by default** — a single ocli profile, no instance prefixes. Got more than one? Copy the skill or add another ocli profile (see below).
+- **Quiet setup contract** — preflight prints a structured `KEY=VALUE` report so the agent can pick up an existing config or guide the user (or itself) through `--non-interactive` setup.
 
 ## Compatible agents
 
@@ -44,14 +43,11 @@ Copy `skills/twenty-crm/` into one of your client's skill directories:
 
 ## Quick start
 
-1. Install Restish (one-time):
+1. Install prerequisites (one-time): Node.js ≥18, `ocli`, `jq`, `curl`.
 
    ```bash
-   brew install danielgtaylor/restish/restish     # macOS
-   go install github.com/rest-sh/restish@latest   # Linux/Go
+   npm i -g openapi-to-cli@0.1.15     # the CLI generator (pinned)
    ```
-
-   Or run `bash skills/twenty-crm/scripts/install-restish.sh` to do it for you.
 
 2. Get an API key from Twenty: **Settings → APIs & Webhooks → + Create key**. Copy it immediately — it's shown once.
 
@@ -61,16 +57,15 @@ Copy `skills/twenty-crm/` into one of your client's skill directories:
    bash skills/twenty-crm/scripts/setup.sh
    ```
 
-   The script asks for an instance name, server URL, the API key, and where to store the token (Keychain / env var / file). It validates the token, downloads the OpenAPI spec, and registers two Restish APIs (`twenty-<instance>-core` and `twenty-<instance>-meta`).
+   The script asks for the server URL and the API key. It validates the key, downloads the OpenAPI spec, and creates an ocli profile (default name `twenty`).
 
 4. Confirm:
 
    ```bash
    bash skills/twenty-crm/scripts/preflight.sh
    # STATUS=ready
-   # DEFAULT=<instance>
-   # INSTANCES=<instance>
-   # URL_<instance>=<base-url>
+   # PROFILE=twenty
+   # URL=<base-url>
    ```
 
 5. Use it from your agent:
@@ -85,23 +80,26 @@ Copy `skills/twenty-crm/` into one of your client's skill directories:
 
 The full operating reference lives in [`skills/twenty-crm/SKILL.md`](skills/twenty-crm/SKILL.md). Detailed references that load on demand:
 
-- [`references/setup-guide.md`](skills/twenty-crm/references/setup-guide.md) — first-time setup: server URL, creating an API key, token storage
+- [`references/setup-guide.md`](skills/twenty-crm/references/setup-guide.md) — first-time setup: prerequisites, server URL, creating an API key
 - [`references/filter-dsl.md`](skills/twenty-crm/references/filter-dsl.md) — filter, order-by, pagination DSL
 - [`references/api-shape.md`](skills/twenty-crm/references/api-shape.md) — built-in objects, key fields, conventions (money in micros, soft delete, polymorphic targets)
-- [`references/restish-usage.md`](skills/twenty-crm/references/restish-usage.md) — Restish call patterns, projection, troubleshooting
-- [`references/architecture.md`](skills/twenty-crm/references/architecture.md) — why setup is wired the way it is (slim spec / schema stubbing / external-tool auth helper)
+- [`references/ocli-usage.md`](skills/twenty-crm/references/ocli-usage.md) — ocli call patterns, command naming, output→jq, troubleshooting
+- [`references/architecture.md`](skills/twenty-crm/references/architecture.md) — why setup is wired the way it is (ocli profiles, the `~/.ocli` vs `config.json` split, the `cd $HOME` rule)
 
 ## State and locations
 
-The skill stores all per-instance state under `$XDG_CONFIG_HOME/twenty-cli/` (default `~/.config/twenty-cli/`). Override with `TW_CONFIG_DIR=<path>`. Nothing is hardcoded; you can configure as many Twenty deployments as you like.
+| File / location                          | Purpose                                                        |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `~/.ocli/profiles.ini`                   | ocli profile: base URL + **plaintext** bearer token (mode 600) |
+| `~/.ocli/current`                        | ocli's active profile                                          |
+| `~/.ocli/specs/<profile>.json`           | ocli's resolved (inlined) spec cache                           |
+| `~/.config/twenty-cli/config.json`       | the skill's pointer: the ocli profile name(s)                  |
 
-| File / location                                          | Purpose                                          |
-| -------------------------------------------------------- | ------------------------------------------------ |
-| `~/.config/twenty-cli/instances.json`                    | Instance registry (URL, token source, slim args) |
-| `~/.config/twenty-cli/specs/<name>/{core,metadata}*.json` | Downloaded OpenAPI specs (full and slim)         |
-| `~/.config/twenty-cli/tokens/<name>`                     | Only when `--token-from file`                    |
-| macOS Keychain                                           | Only when `--token-from keychain`                |
-| Restish's `apis.json`                                    | API registrations written by `setup.sh`          |
+`~/.ocli` is ocli's standard home, shared by any ocli-based tool; the skill uses a distinctively named profile (default `twenty`) to coexist. Override the skill's own dir with `TW_CONFIG_DIR=<path>`.
+
+### More than one Twenty?
+
+The default is a single CRM. To work with several, either copy the skill directory, or add another ocli profile manually (`ocli profiles add <other> --api-base-url <url>/rest --openapi-spec <file> --api-bearer-token <key>`) and switch with `ocli use <name>`.
 
 ## Contributing
 
@@ -114,5 +112,5 @@ MIT — see [LICENSE](LICENSE).
 ## Acknowledgements
 
 - [Twenty](https://twenty.com) for the CRM and the per-tenant OpenAPI surface that makes this skill possible.
-- [Restish](https://rest.sh) by [@danielgtaylor](https://github.com/danielgtaylor) for the HTTP CLI.
+- [`ocli` / openapi-to-cli](https://github.com/EvilFreelancer/openapi-to-cli) by [@EvilFreelancer](https://github.com/EvilFreelancer) for generating the CLI from the spec.
 - [Anthropic](https://anthropic.com) for the [Agent Skills](https://agentskills.io) standard.

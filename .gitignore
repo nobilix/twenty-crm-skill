@@ -26,5 +26,8 @@ tmp/
 # Per-user runtime state (lives in ~/.config/twenty-cli/, never in the repo)
 .twenty-cli/
 
+# ocli config lives in ~/.ocli; guard against a stray cwd-local one being committed
+.ocli/
+
 # Local-only working docs (not for publication)
 .local-docs/

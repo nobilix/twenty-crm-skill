@@ -2,13 +2,13 @@
   "name": "twenty-crm-skill",
   "metadata": {
     "description": "Agent Skill for reading and modifying Twenty CRM data on any self-hosted or cloud deployment.",
-    "version": "0.2.4",
+    "version": "0.3.0",
     "homepage": "https://github.com/nobilix/twenty-crm-skill"
   },
   "plugins": [
     {
       "name": "twenty-crm",
-      "description": "Read and modify Twenty CRM data — people, companies, opportunities, tasks, notes, custom objects — via Restish over the per-tenant REST API.",
+      "description": "Read and modify Twenty CRM data — people, companies, opportunities, tasks, notes, custom objects — via ocli over the per-tenant REST API.",
       "source": "./",
       "strict": false,
       "skills": [

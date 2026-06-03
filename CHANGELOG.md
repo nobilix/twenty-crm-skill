@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-06-03
+
+Breaking: the runtime changed from Restish to [`ocli`](https://github.com/EvilFreelancer/openapi-to-cli). Reinstall prerequisites and re-run setup.
+
+### Changed
+
+- **Runtime swap.** The skill now generates its CLI from the full per-tenant OpenAPI spec via `ocli` (`openapi-to-cli`), pinned to `0.1.15`. ocli resolves Twenty's circular `$ref`s natively (eager resolution + cycle guard), so the mandatory spec-slimming/stubbing is gone. New dependency: Node.js ≥18 (`npm i -g openapi-to-cli@0.1.15`); Restish is no longer used.
+- **Simpler setup.** `setup.sh --non-interactive --url <url> --token <key>` — dropped `--name`, the token-storage mode, and the slim flags. A single ocli profile (`twenty`) by default; `--with-metadata` adds the schema-admin profile.
+- **Command surface** is ocli's `<path>_<method>` naming (`people_get`, `companies_post`, `opportunities_id_patch`, …); responses are raw JSON piped to `jq` instead of Restish `-f` projections. Create/update take per-field flags (composite fields as JSON).
+- **Credentials** are stored in ocli's `~/.ocli/profiles.ini` in plaintext, hardened to mode `600` (`umask 077`). The keychain/env/file model and the `$TWENTY_API_KEY` override are gone — re-run setup to rotate.
+- **preflight** now emits `PROFILE` / `URL` / `METADATA` / `TZ` / `NOW` (was `DEFAULT` / `INSTANCES` / `URL_<name>`) and warns when a `$PWD/.ocli` directory shadows `~/.ocli`.
+- **Date/time handling.** Twenty stores datetimes in UTC and renders them in the user's timezone, so naive values landed shifted. preflight now surfaces the user's `TZ`/`NOW`, and SKILL.md / api-shape.md cover converting a local wall-clock time to UTC (via `node`) before writing `dueAt`/`closeDate` and computing UTC bounds for date-range filters.
+- **State** is a single `~/.config/twenty-cli/config.json` pointer (the profile name) instead of `instances.json`; the spec cache and token live under `~/.ocli` (no `specs/` tree or Restish `apis.json` of ours).
+
+### Removed
+
+- `scripts/slim-spec.sh`, `scripts/auth-helper.sh`, `scripts/install-restish.sh`, the multi-instance registry, and `references/restish-usage.md` (replaced by `references/ocli-usage.md`). Seven scripts down to three.
+
+### Known limitations
+
+- ocli sends a bare numeric flag as a string, which Twenty rejects (`Invalid number value`). Numbers nested inside a JSON object flag (e.g. money `amountMicros`) are preserved; top-level integer fields such as `employees`/`position` can't be set via ocli. Documented in `references/api-shape.md`.
+
 ## [0.2.4] — 2026-06-02
 
 ### Changed
@@ -62,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `refresh-schema.sh` that respects each instance's persisted slim configuration.
 - References: `filter-dsl.md`, `api-shape.md`, `restish-usage.md`, `architecture.md`.
 
-[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.3.0
 [0.2.4]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.4
 [0.2.3]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.3
 [0.2.2]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.2

@@ -1,37 +1,38 @@
 # First-time setup
 
-Load this when `preflight.sh` reports `STATUS=not_ready`, or whenever a user needs to connect a Twenty instance. It walks through the three things `setup.sh` asks for — **server URL**, **API key**, **token storage** — and where each comes from.
+Load this when `preflight.sh` reports `STATUS=not_ready`, or whenever a user needs to connect a Twenty instance. It walks through what `setup.sh` needs — **server URL** and **API key** — and the prerequisites.
 
 ## At a glance
 
-1. Install prerequisites: `restish`, `jq`, `curl`.
+1. Install prerequisites: Node.js ≥18, `ocli`, `jq`, `curl`.
 2. Find your **base URL** (the address you open Twenty at).
 3. Create an **API key** in Twenty: Settings → APIs & Webhooks → Create API Key → name it → Save → **Copy** (shown once).
-4. Run `setup.sh` with those two values and pick where to store the token.
+4. Run `setup.sh` with those two values.
 5. Run `preflight.sh` to confirm `STATUS=ready`.
 
 ## 1. Prerequisites
 
 ```bash
-restish --version    # https://rest.sh
+node --version       # ≥ 18  (https://nodejs.org)
+ocli --version       # if missing: npm i -g openapi-to-cli@0.1.15
 jq --version
 curl --version
 ```
 
-If `restish` is missing: `bash scripts/install-restish.sh` (uses Homebrew, else `go install`, else prints the binary download URL).
+`ocli` ([openapi-to-cli](https://github.com/EvilFreelancer/openapi-to-cli)) is a Node package; install it globally with the pinned version above. (Its `--version` prints `0.1.0` even when the npm package is `0.1.15` — a known quirk; trust `npm ls -g openapi-to-cli`.)
 
 ## 2. URL
 
-Always use **the address you open Twenty at in the browser** — `setup.sh` appends `/rest` automatically. That single origin serves both the REST API and the clickable record links the agent shows you.
+Always use **the address you open Twenty at in the browser** — `setup.sh` appends `/rest`. That single origin serves both the REST API and the clickable record links the agent shows you.
 
-| Deployment | URL |
-| --- | --- |
-| Self-hosted | Your Twenty app address, e.g. `https://crm.your-company.com` |
+| Deployment   | URL                                                          |
+| ------------ | ------------------------------------------------------------ |
+| Self-hosted  | Your Twenty app address, e.g. `https://crm.your-company.com` |
 | Twenty Cloud | Your workspace subdomain, e.g. `https://your-workspace.twenty.com` |
 
-> **Cloud: use your workspace subdomain, not `https://api.twenty.com`.** The shared `api.twenty.com` host answers REST calls, but it has no UI — so record links like `https://api.twenty.com/objects/companies` won't open. Your workspace URL (the one you log in at) serves the API *and* produces working links.
+> **Cloud: use your workspace subdomain, not `https://api.twenty.com`.** The shared `api.twenty.com` host answers REST calls but has no UI — so record links like `https://api.twenty.com/objects/companies` won't open. Your workspace URL serves the API *and* produces working links.
 
-No trailing slash needed — setup strips it. If you get the URL wrong, setup fails fast: it validates by fetching `<url>/rest/open-api/core` before saving anything.
+No trailing slash needed. If you get the URL wrong, setup fails fast: it validates by fetching `<url>/rest/open-api/core` before saving anything.
 
 ## 3. API key
 
@@ -39,9 +40,8 @@ In the Twenty web app:
 
 1. **Settings → APIs & Webhooks**.
 2. Click **Create API Key**.
-3. Give it a **name** (this name shows up as the author on records the skill creates — pick something recognizable like `agent` or `claude-code`, not just `automation`).
-4. Hit **Save**.
-5. **Copy** the key immediately — it's shown only once. If you lose it, create a new one.
+3. Give it a **name** (this shows up as the author on records the skill creates — pick something recognizable like `agent` or `claude-code`).
+4. **Save**, then **Copy** the key immediately — it's shown only once.
 
 The key is a long JWT-style string (it contains dots). Treat it like a password.
 
@@ -53,52 +53,43 @@ The key is a long JWT-style string (it contains dots). Treat it like a password.
 bash scripts/setup.sh
 ```
 
-Prompts for instance name, URL, API key (hidden input), and token storage.
+Prompts for the URL and the API key (hidden input).
 
-> **Run this in your own terminal window, not through the agent.** The key is typed as hidden input straight into the script, so it never lands in the chat transcript, the agent's context, or any tool log.
+> **Run this in your own terminal window, not through the agent.** The key is typed as hidden input straight into the script, so it never lands in the chat transcript or any tool log.
 
 ### Non-interactive (agent-driven, when the user handed over the values)
 
 ```bash
-bash scripts/setup.sh --non-interactive \
-  --name <name> --url <url> --token-from {keychain|env|file} --token <key>
+bash scripts/setup.sh --non-interactive --url <url> --token <key>
 ```
 
-**Instance name** is a short lowercase label (`[a-z0-9-]+`) you'll use in commands — e.g. `myco` → `restish twenty-myco-core ...`. Register as many instances as you like (prod, staging, a cloud workspace) and they coexist.
+Add `--with-metadata` to also create the schema-admin profile (`<name>-meta`) — only needed for changing the workspace schema (objects/fields/webhooks), which is rare.
 
-## 5. Token storage — pick one
+## 5. Where the token lives
 
-| Mode | Best for | Where it lives |
-| --- | --- | --- |
-| `keychain` | macOS workstation (default) | macOS Keychain (account `twenty-<name>`, service `api`) |
-| `file` | Linux / WSL / no system keyring | `~/.config/twenty-cli/tokens/<name>`, `chmod 600` |
-| `env` | CI, Docker, agent runners | Environment variable `TWENTY_<NAME>_KEY` |
+Setup creates an `ocli` **profile** (default name `twenty`) under `~/.ocli/`. The base URL and bearer token live in `~/.ocli/profiles.ini`, **in plaintext**, hardened to mode `600` (setup runs under `umask 077`). The skill itself records only the profile name in `~/.config/twenty-cli/config.json`.
 
-`keychain` is macOS-only. On **Windows use WSL** and choose `file` or `env`.
-
-> **Use your OS secret manager if you have one (recommended, not required).** On macOS that's the Keychain (`keychain` mode) — the token is encrypted at rest and unlocked with your login. `setup.sh` writes and reads it for you; you never run `security` by hand. No keyring (Linux/WSL)? `file` mode (`chmod 600`) is a fine fallback.
-
-At runtime, `$TWENTY_API_KEY` overrides whatever is stored — handy for ad-hoc keys without reconfiguring.
+To **rotate** the key: create a new one in Twenty and re-run `setup.sh` (it overwrites the token). There is no separate keychain/env option — the token lives in the ocli profile.
 
 ## 6. Verify
 
 ```bash
 bash scripts/preflight.sh
 # STATUS=ready
-# DEFAULT=<name>
-# INSTANCES=<name>
-# URL_<name>=<base-url>
+# PROFILE=twenty
+# URL=<base-url>
 ```
 
 Then a real round-trip:
 
 ```bash
-restish twenty-<name>-core find-many-people --limit 1 -f body.totalCount -r
+ocli people_get --limit 1 | jq '.totalCount'
 ```
 
 ## Troubleshooting
 
-- **HTTP 401 during setup** — wrong or revoked key. Create a fresh one (step 3).
+- **HTTP 401 during setup** — wrong or revoked key. Create a fresh one (step 3) and re-run.
 - **`not valid OpenAPI` / connection error** — wrong base URL, or the server isn't reachable from here. Confirm the URL opens in a browser.
-- **`restish` hangs at 100% CPU** — only happens with an un-slimmed spec; setup always slims. If you edited specs by hand, re-run `setup.sh` or `refresh-schema.sh`. See `architecture.md`.
-- **Token file gives 401 but looks right** — likely CRLF line endings from a Windows editor. The skill strips them (`tr -d '\r\n'`), but if you hand-wrote the file with trailing whitespace, re-save it with a trailing-newline-free or Unix-LF format.
+- **`ocli profile 'twenty' not found`** — setup hasn't run (or ran elsewhere). Run `setup.sh`.
+- **preflight warns about a local `.ocli`** — a `.ocli` directory in your current folder shadows `~/.ocli`. Remove it or run from another directory (see `ocli-usage.md`).
+- **`Invalid number value`** when creating a record — a numeric field was passed as a bare flag; ocli sends it as a string. Nest it in a JSON object flag or omit it (see `api-shape.md`).
