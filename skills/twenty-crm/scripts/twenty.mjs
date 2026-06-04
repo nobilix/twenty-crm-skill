@@ -34,13 +34,20 @@ const onPath = (cmd) =>
   (process.env.PATH || '').split(':').some((d) => d && existsSync(join(d, cmd)));
 
 // Run ocli from $HOME so its config resolves to ~/.ocli — ocli defaults to
-// $PWD/.ocli when no profiles.ini exists yet. Throws ocli's stderr on failure
-// (so callers' `finally` cleanup runs; main() turns it into a clean exit).
+// $PWD/.ocli when no profiles.ini exists yet. Throws on failure (so callers'
+// `finally` cleanup runs; main() turns it into a clean exit). The bearer token
+// is NEVER echoed: it's redacted from both the shown command and ocli's stderr.
 function ocli(args) {
   try {
     execFileSync('ocli', args, { cwd: HOME, stdio: ['ignore', 'ignore', 'pipe'] });
   } catch (e) {
-    throw new Error(`ocli ${args.join(' ')} failed${e.stderr ? `: ${String(e.stderr).trim()}` : ''}`);
+    if (e.code === 'ENOENT') throw new Error(`ocli not found on PATH — install it: npm i -g ${OCLI_PKG}`);
+    const ti = args.indexOf('--api-bearer-token');
+    const token = ti >= 0 ? args[ti + 1] : '';
+    const shown = args.map((a, i) => (i === ti + 1 ? '***' : a)).join(' ');
+    let err = e.stderr ? String(e.stderr).trim() : '';
+    if (token) err = err.split(token).join('***');
+    throw new Error(`ocli ${shown} failed${err ? `: ${err}` : ''}`);
   }
 }
 
@@ -149,6 +156,23 @@ async function askMissing(url, token) {
   return { url, token };
 }
 
+// ocli is required for everything else. If it's missing, offer to install it on
+// a terminal; otherwise exit with the exact command (never reach a token call).
+async function ensureOcli() {
+  if (onPath('ocli')) return;
+  const cmd = `npm i -g ${OCLI_PKG}`;
+  if (process.stdin.isTTY) {
+    const yn = (await readLine(`ocli is not installed. Install it now? (${cmd}) [y/N]: `)).trim().toLowerCase();
+    if (yn === 'y' || yn === 'yes') {
+      try { execFileSync('npm', ['i', '-g', OCLI_PKG], { stdio: 'inherit' }); }
+      catch { die(`install failed — run it yourself: ${cmd}`); }
+      if (!onPath('ocli')) die(`ocli still not on PATH after install — ensure your npm global bin dir is on PATH`);
+      return;
+    }
+  }
+  die(`ocli is required but not installed. Run: ${cmd}`);
+}
+
 // ── setup ────────────────────────────────────────────────────────────────────
 async function cmdSetup(args) {
   let interactive = true, url = '', token = '', withMeta = false;
@@ -162,6 +186,7 @@ async function cmdSetup(args) {
     else die(`unknown flag: ${a}`);
   }
 
+  await ensureOcli();   // fail fast (with an install offer) before prompting for the key
   if (interactive && (!url || !token)) ({ url, token } = await askMissing(url, token));
   if (!url) die('missing --url');
   if (!token) die('missing --token');

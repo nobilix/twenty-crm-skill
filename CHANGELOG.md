@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-06-03
+
+### Fixed
+
+- **Security: the API token could be printed to the console.** When an `ocli` call failed, the thrown error echoed the full command — including `--api-bearer-token <key>`. The token is now redacted (`***`) in the shown command and scrubbed from ocli's stderr.
+- **Clear "ocli not installed" error.** A missing `ocli` binary produced a cryptic `… failed` with empty stderr. `setup` now checks for `ocli` up front and, on a terminal, **offers to install it** (`npm i -g openapi-to-cli@0.1.15`); non-interactively it exits with the exact command. A missing `ocli` anywhere (ENOENT) reports the install hint instead of a bare failure.
+
 ## [0.3.0] — 2026-06-03
 
 Breaking: the runtime changed from Restish to [`ocli`](https://github.com/EvilFreelancer/openapi-to-cli). Reinstall prerequisites and re-run setup.
@@ -85,7 +92,8 @@ Breaking: the runtime changed from Restish to [`ocli`](https://github.com/EvilFr
 - `refresh-schema.sh` that respects each instance's persisted slim configuration.
 - References: `filter-dsl.md`, `api-shape.md`, `restish-usage.md`, `architecture.md`.
 
-[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/nobilix/twenty-crm-skill/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.3.1
 [0.3.0]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.3.0
 [0.2.4]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.4
 [0.2.3]: https://github.com/nobilix/twenty-crm-skill/releases/tag/v0.2.3

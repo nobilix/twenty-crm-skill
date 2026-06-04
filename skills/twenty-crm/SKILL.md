@@ -4,7 +4,7 @@ description: Read and modify Twenty CRM data — people, companies, opportunitie
 license: MIT
 compatibility: macOS or Linux. Requires Node.js ≥18, ocli (openapi-to-cli), and jq.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Twenty CRM

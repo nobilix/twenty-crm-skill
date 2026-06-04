@@ -18,7 +18,7 @@ ocli --version       # if missing: npm i -g openapi-to-cli@0.1.15
 jq --version
 ```
 
-`ocli` ([openapi-to-cli](https://github.com/EvilFreelancer/openapi-to-cli)) is a Node package; install it globally with the pinned version above. (Its `--version` prints `0.1.0` even when the npm package is `0.1.15` — a known quirk; trust `npm ls -g openapi-to-cli`.)
+`ocli` ([openapi-to-cli](https://github.com/EvilFreelancer/openapi-to-cli)) is a Node package; install it globally with the pinned version above. If you skip this, `setup` checks for it and — on a terminal — offers to install it for you. (Its `--version` prints `0.1.0` even when the npm package is `0.1.15` — a known quirk; trust `npm ls -g openapi-to-cli`.)
 
 ## 2. URL
 
